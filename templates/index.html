@@ -1,13 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Form Example</title>
+    <title>Web Source Analyzer</title>
 </head>
 <body>
-    <h2>Enter Your Name</h2>
-    <form action="/submit" method="POST">
-        <input type="text" name="name" required>
-        <input type="submit" value="Submit">
+    <h1>Search and Analyze Sources</h1>
+    <form method="post">
+        <input type="text" name="query" placeholder="Enter your search" required>
+        <input type="text" name="serpapi_key" placeholder="SerpAPI key (optional)">
+        <button type="submit">Search</button>
     </form>
+
+    {% if results %}
+        <h2>Results:</h2>
+        {% for result in results %}
+            <p><strong>URL:</strong> <a href="{{ result.url }}">{{ result.url }}</a></p>
+            <!--<p><strong>Entities:</strong> {{ result.entities }}</p>-->
+            <hr>
+        {% endfor %}
+    {% endif %}
 </body>
 </html>
