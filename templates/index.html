@@ -1,23 +1,128 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Web Source Analyzer</title>
-</head>
-<body>
-    <h1>Search and Analyze Sources</h1>
-    <form method="post">
-        <input type="text" name="query" placeholder="Enter your search" required>
-        <input type="text" name="serpapi_key" placeholder="SerpAPI key (optional)">
-        <button type="submit">Search</button>
-    </form>
 
-    {% if results %}
-        <h2>Results:</h2>
-        {% for result in results %}
-            <p><strong>URL:</strong> <a href="{{ result.url }}">{{ result.url }}</a></p>
-            <!--<p><strong>Entities:</strong> {{ result.entities }}</p>-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content=
+        "width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" 
+        href="index.css" media="screen" />
+</head>
+
+<body>
+    <div class=" header1">
+        <div id="name" class="header1">
+            OLD MASTER
+        </div>
+        <div id="searcharea" class="header1">
+            <form method="POST" action="/">
+                <input placeholder="search here...." 
+                    type="text" name="query" id="searchbox" />
+                <input type="hidden" name="serpapi_key" value="" />
+            </form>
+        </div>
+        <div id="profilearea" class="header1">Profile</div>
+        <div id="profilearea1" class="header1">|</div>
+        <div id="profilearea2" class="header1">Home</div>
+    </div>
+    <div class="sidenav">
+        <div class="bodyn">
+            <div id="side1" class="bodyn">Profile</div>
+            <div id="side2" class="bodyn">edit profile</div>
+            <div id="side3" class="bodyn">News feed</div>
+            <div id="side4" class="bodyn">Messages</div>
+            <div id="side5" class="bodyn">Events</div>
+            <div id="side6" class="bodyn">PAGES</div>
+            <div id="side7" class="bodyn">Pages feed</div>
+            <div id="side8" class="bodyn">Like pages</div>
+            <div id="side9" class="bodyn">Create page</div>
+            <div id="side10" class="bodyn">Create ad</div>
+            <div id="side11" class="bodyn">GROUPS</div>
+            <div id="side12" class="bodyn">New groups</div>
+            <div id="side13" class="bodyn">Create group</div>
+            <div id="side14" class="bodyn">APPS</div>
+            <div id="side15" class="bodyn">Games</div>
+            <div id="side16" class="bodyn">On this day</div>
+            <div id="side17" class="bodyn">Games feed</div>
+            <div id="side18" class="bodyn">FRIENDS</div>
+            <div id="side19" class="bodyn">Close friends</div>
+            <div id="side20" class="bodyn">Family</div>
+            <div id="side21" class="bodyn">INTERESTS</div>
+            <div id="side22" class="bodyn">Pages and public</div>
+            <div id="side23" class="bodyn">EVENTS</div>
+            <div id="side24" class="bodyn">Create event</div>
+        </div>
+    </div>
+    <div class="post00"></div>
+    <div class="post10"></div>
+
+    <div class="header0001"></div>
+    <div class="sideboxxx"></div>
+    <div class="sideboxxxx2"></div>
+    <div class="post">
+        <form method="POST" action="/">
+            <div id="column-1" class="post">
+                <textarea placeholder="What's on your mind?" name="post_content" id="postbox" required></textarea>
+            </div>
+            <div id="postpos" class="post">
+                <input type="submit" id="buttonpost" value="Post" />
+            </div>
+        </form>
+    </div>
+
+    <!-- Display posts -->
+    {% for post in posts %}
+    <div class="post1">
+        <div class="post-content">
+            <p1>User {{ post.user_id }}</p1>
+            <p4>{{ post.created_at.strftime('%Y-%m-%d %H:%M') if post.created_at else 'Unknown time' }}</p4>
+            <p>{{ post.content }}</p>
+        </div>
+        <div class="post-actions">
+            <p6>Like Comment Share</p6>
+        </div>
+        <hr>
+    </div>
+    {% endfor %}
+
+    <div class="sidebox">
+        <div id="sidebox1" class="sidebox">
+            <div id="sideboxx1">YOUR PAGES</div>
+            <hr><br><br>See all
             <hr>
-        {% endfor %}
-    {% endif %}
+            <div id="sideboxx2">
+                This Week
+            </div><br><br>See more
+            <hr>
+            <div id="sideboxx3">
+                Recent Posts
+            </div><br><br>See more
+            <hr>
+            <div id="sideboxx4">
+                You haven't posted in this days
+            </div><br><br><br>See all
+        </div>
+
+        <div id="post1pos" class="sidebox">
+            <input type="submit" id="buttonpost1" 
+                value="write a post" />
+        </div>
+    </div>
+    <div class="sideboxxx2">
+        <div id="sidebox2" class="sideboxxx2">
+            <hr>
+            <div id="sideboxx21">Trending</div>
+            <br><br><br>See more
+            <hr>
+            <div id="sideboxx22">
+                Suggested Pages
+            </div><br><br><br>See all
+            <hr>
+            <div id="sideboxx23">
+                People you may know
+            </div><br><br><br><br>See all
+        </div>
+    </div>
 </body>
+
 </html>

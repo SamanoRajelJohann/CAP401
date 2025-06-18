@@ -1,4 +1,4 @@
-from serpapi import GoogleSearch
+from serpapi.google_search import GoogleSearch
 from googlesearch import search
 from newspaper import Article
 import spacy

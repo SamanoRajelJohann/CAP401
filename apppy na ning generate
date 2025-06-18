@@ -28,22 +28,8 @@ def assign_user():
                 insert_user_sql = "INSERT INTO users (uuid) VALUES (%s)"
                 cursor.execute(insert_user_sql, (session['user_id'],))
                 db.commit()
-                # Get the user's id for future use
-                cursor.execute("SELECT id FROM users WHERE uuid = %s", (session['user_id'],))
-                user = cursor.fetchone()
-                session['user_db_id'] = user['id']
         except Exception as e:
             print("❌ User creation error:", e)
-    elif 'user_db_id' not in session:
-        # If user_id exists but user_db_id doesn't, get the id
-        try:
-            with db.cursor() as cursor:
-                cursor.execute("SELECT id FROM users WHERE uuid = %s", (session['user_id'],))
-                user = cursor.fetchone()
-                if user:
-                    session['user_db_id'] = user['id']
-        except Exception as e:
-            print("❌ Error getting user id:", e)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -65,7 +51,7 @@ def index():
             try:
                 with db.cursor() as cursor:
                     insert_post_sql = "INSERT INTO posts (user_id, content, created_at) VALUES (%s, %s, %s)"
-                    cursor.execute(insert_post_sql, (session.get('user_db_id'), post_content, datetime.now()))
+                    cursor.execute(insert_post_sql, (session['user_id'], post_content, datetime.now()))
                     db.commit()
                 return redirect('/')
             except Exception as e:
