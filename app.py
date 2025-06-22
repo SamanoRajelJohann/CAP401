@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, jsonify
 import pymysql
 from scraper import main_system
 import uuid
@@ -53,25 +53,21 @@ def index():
     # Get existing posts
     try:
         with db.cursor() as cursor:
-            cursor.execute("SELECT * FROM posts ORDER BY created_at DESC")
+            # Join with users table to get UUID
+            sql = """
+                SELECT p.id, p.content, p.created_at, u.uuid as user_id 
+                FROM posts p 
+                JOIN users u ON p.user_id = u.id 
+                ORDER BY p.created_at DESC
+            """
+            cursor.execute(sql)
             posts = cursor.fetchall()
     except Exception as e:
         print("❌ Error fetching posts:", e)
 
     if request.method == 'POST':
-        if 'post_content' in request.form:
-            # Handle new post
-            post_content = request.form['post_content']
-            try:
-                with db.cursor() as cursor:
-                    insert_post_sql = "INSERT INTO posts (user_id, content, created_at) VALUES (%s, %s, %s)"
-                    cursor.execute(insert_post_sql, (session.get('user_db_id'), post_content, datetime.now()))
-                    db.commit()
-                return redirect('/')
-            except Exception as e:
-                print("❌ Error creating post:", e)
-        
-        elif 'query' in request.form:
+        # This now only handles the search functionality
+        if 'query' in request.form:
             # Handle search query
             query = request.form['query']
             serpapi_key = request.form['serpapi_key'] or None
@@ -93,6 +89,41 @@ def index():
                 print("❌ DB Insert Error:", e)
 
     return render_template('index.html', posts=posts, results=results)
+
+@app.route('/add_post', methods=['POST'])
+def add_post():
+    if 'user_db_id' not in session:
+        return jsonify({'status': 'error', 'message': 'User not logged in'}), 401
+
+    post_content = request.form.get('post_content')
+    if not post_content:
+        return jsonify({'status': 'error', 'message': 'Post content is empty'}), 400
+
+    try:
+        with db.cursor() as cursor:
+            created_time = datetime.now()
+            insert_post_sql = "INSERT INTO posts (user_id, content, created_at) VALUES (%s, %s, %s)"
+            cursor.execute(insert_post_sql, (session['user_db_id'], post_content, created_time))
+            new_post_id = cursor.lastrowid
+            db.commit()
+
+            # Fetch the user's UUID to display
+            cursor.execute("SELECT uuid FROM users WHERE id = %s", (session['user_db_id'],))
+            user = cursor.fetchone()
+            user_uuid = user['uuid'] if user else 'Anonymous'
+
+        return jsonify({
+            'status': 'success',
+            'post': {
+                'id': new_post_id,
+                'content': post_content,
+                'user_id': user_uuid,
+                'created_at': created_time.strftime('%Y-%m-%d %H:%M')
+            }
+        })
+    except Exception as e:
+        print("❌ Error creating post:", e)
+        return jsonify({'status': 'error', 'message': 'Failed to create post'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
