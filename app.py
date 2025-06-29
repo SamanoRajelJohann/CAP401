@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request, redirect, session, jsonify
+from flask import Flask, render_template, request, redirect, session, jsonify, send_from_directory
 import pymysql
 from scraper import main_system
 import uuid
 import os
 from datetime import datetime
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -18,6 +19,17 @@ db = pymysql.connect(
     charset="utf8mb4",
     cursorclass=pymysql.cursors.DictCursor
 )
+
+# Config for image uploads
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'img')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.before_request
 def assign_user():
@@ -96,14 +108,23 @@ def add_post():
         return jsonify({'status': 'error', 'message': 'User not logged in'}), 401
 
     post_content = request.form.get('post_content')
-    if not post_content:
-        return jsonify({'status': 'error', 'message': 'Post content is empty'}), 400
+    image_file = request.files.get('image')
+    image_path = None
+
+    # Handle image upload
+    if image_file and allowed_file(image_file.filename):
+        filename = secure_filename(str(uuid.uuid4()) + '_' + image_file.filename)
+        image_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        image_path = filename
+
+    if not post_content and not image_path:
+        return jsonify({'status': 'error', 'message': 'Post content or image required'}), 400
 
     try:
         with db.cursor() as cursor:
             created_time = datetime.now()
-            insert_post_sql = "INSERT INTO posts (user_id, content, created_at) VALUES (%s, %s, %s)"
-            cursor.execute(insert_post_sql, (session['user_db_id'], post_content, created_time))
+            insert_post_sql = "INSERT INTO posts (user_id, content, created_at, image_path) VALUES (%s, %s, %s, %s)"
+            cursor.execute(insert_post_sql, (session['user_db_id'], post_content, created_time, image_path))
             new_post_id = cursor.lastrowid
             db.commit()
 
@@ -118,12 +139,17 @@ def add_post():
                 'id': new_post_id,
                 'content': post_content,
                 'user_id': user_uuid,
-                'created_at': created_time.strftime('%Y-%m-%d %H:%M')
+                'created_at': created_time.strftime('%Y-%m-%d %H:%M'),
+                'image_path': image_path
             }
         })
     except Exception as e:
         print("❌ Error creating post:", e)
         return jsonify({'status': 'error', 'message': 'Failed to create post'}), 500
+
+@app.route('/img/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -57,9 +57,12 @@
                 <div class="card mb-3">
                     <div class="card-body">
                         <h5 class="card-title">Create Post</h5>
-                        <form id="post-form" method="POST" action="/add_post">
+                        <form id="post-form" method="POST" action="/add_post" enctype="multipart/form-data">
                             <div class="mb-3">
                                 <textarea class="form-control" id="postbox" name="post_content" rows="3" placeholder="What's on your mind?" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <input class="form-control" type="file" id="image" name="image" accept="image/*">
                             </div>
                             <button type="submit" id="buttonpost" class="btn btn-primary">Post</button>
                         </form>
@@ -72,6 +75,9 @@
                     <div class="card mb-3">
                         <div class="card-body">
                             <h6 class="card-subtitle mb-2 text-muted">User {{ post.user_id }}</h6>
+                            {% if post.image_path %}
+                            <img src="/img/{{ post.image_path }}" class="img-fluid mb-2" style="max-height:300px;" alt="Post Image">
+                            {% endif %}
                             <p class="card-text">{{ post.content }}</p>
                             <footer class="blockquote-footer mt-2">{{ post.created_at.strftime('%Y-%m-%d %H:%M') if post.created_at else 'Unknown time' }}</footer>
                             <a href="#" class="card-link">Like</a>
@@ -117,7 +123,8 @@
                     postElement.innerHTML = `
                         <div class="card-body">
                             <h6 class="card-subtitle mb-2 text-muted">User ${newPost.user_id}</h6>
-                            <p class="card-text">${newPost.content}</p>
+                            ${newPost.image_path ? `<img src="/img/${newPost.image_path}" class="img-fluid mb-2" style="max-height:300px;" alt="Post Image">` : ''}
+                            <p class="card-text">${newPost.content || ''}</p>
                             <footer class="blockquote-footer mt-2">${newPost.created_at}</footer>
                              <a href="#" class="card-link">Like</a>
                             <a href="#" class="card-link">Comment</a>
@@ -126,6 +133,7 @@
                     `;
                     postContainer.insertBefore(postElement, postContainer.firstChild);
                     postBox.value = '';
+                    document.getElementById('image').value = '';
                 } else {
                     console.error('Error posting:', data.message);
                     alert('Error: ' + data.message);
